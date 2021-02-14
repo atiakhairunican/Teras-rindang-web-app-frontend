@@ -1,4 +1,4 @@
-def dockerhub = "atiakhairunican/k8sfront"
+def dockerhub = "atiakhairunican/Teras-rindang-frontend"
 def image_name = "${dockerhub}:${BRANCH_NAME}"
 def builder
 
@@ -7,13 +7,9 @@ pipeline {
 
     parameters {
         choice(
-            choices: ['prod', 'dev'],
+            choices: ['dev', 'prod'],
             description: '',
             name: 'REQUESTED_ACTION')
-    }
-
-    environment {
-        compose_file = "docker-compose.yml"
     }
 
     stages {
@@ -51,6 +47,32 @@ pipeline {
             }
         }
 
+        stage("Development") {
+            when {
+                expression {
+                    params.REQUESTED_ACTION == 'dev'
+                }
+            }
+            steps {
+                script {
+                    sshPublisher(
+                        publishers: [
+                            sshPublisherDesc(
+                                configName: "teras-rindang-dev",
+                                verbose: true,
+                                transfers: [
+                                    sshTransfer(
+                                        execCommand: "cd /home/atia/development/frontend; docker-compose down; docker-compose up -d",
+                                        execTimeout: 1500000
+                                    )
+                                ]
+                            )
+                        ]
+                    )
+                }
+            }
+        }
+
         stage("Production") {
             when {
                 expression {
@@ -62,37 +84,11 @@ pipeline {
                     sshPublisher(
                         publishers: [
                             sshPublisherDesc(
-                                configName: "prodserver",
+                                configName: "teras-rindang-prod",
                                 verbose: true,
                                 transfers: [
                                     sshTransfer(
-                                        execCommand: "cd /home/production/frontend; docker-compose down; docker rmi ${image_name}; docker pull ${image_name}; docker-compose up -d",
-                                        execTimeout: 1500000
-                                    )
-                                ]
-                            )
-                        ]
-                    )
-                }
-            }
-        }
-
-        stage("Deployment") {
-            when {
-                expression {
-                    params.REQUESTED_ACTION == 'dev'
-                }
-            }
-            steps {
-                script {
-                    sshPublisher(
-                        publishers: [
-                            sshPublisherDesc(
-                                configName: "kubeserver",
-                                verbose: true,
-                                transfers: [
-                                    sshTransfer(
-                                        execCommand: "cd /home/kubernetes/kubernetes; echo 'A12051999f' | sudo -S kubectl apply -f frontend.yaml",
+                                        execCommand: "cd /home/atia/production/frontend; docker-compose down; docker-compose up -d",
                                         execTimeout: 1500000
                                     )
                                 ]
