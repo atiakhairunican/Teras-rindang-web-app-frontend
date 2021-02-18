@@ -5,13 +5,13 @@ def builder
 pipeline {
     agent any
 
-    // parameters {
-    //     choice(
-    //         name: "dev",
-    //         choices: ["No", "Yes"],
-    //         description: "Development"
-    //     )
-    // }
+    parameters {
+        choice(
+            name: "dev",
+            choices: ["No", "Yes"],
+            description: "Development"
+        )
+    }
 
     stages {
         stage("Install dependencies") {
@@ -48,30 +48,30 @@ pipeline {
             }
         }
 
-        // stage("Development") {
-        //     when {
-        //         expression {
-        //             params.dev == "Yes"
-        //         }
-        //     }
-        //     steps {
-        //         script {
-        //             sshPublisher(
-        //                 publishers: [
-        //                     sshPublisherDesc(
-        //                         configName: "terasdev",
-        //                         verbose: true,
-        //                         transfers: [
-        //                             sshTransfer(
-        //                                 execCommand: "cd /home/atia/development/frontend; docker-compose down; docker pull ${image_name}; docker-compose up -d",
-        //                                 execTimeout: 1500000
-        //                             )
-        //                         ]
-        //                     )
-        //                 ]
-        //             )
-        //         }
-        //     }
-        // }
+        stage("Development") {
+            when {
+                expression {
+                    params.dev == "Yes"
+                }
+            }
+            steps {
+                script {
+                    sshPublisher(
+                        publishers: [
+                            sshPublisherDesc(
+                                configName: "terasdev",
+                                verbose: true,
+                                transfers: [
+                                    sshTransfer(
+                                        execCommand: "cd /home/atia/development/frontend; docker-compose down; docker pull ${image_name}; docker-compose up -d",
+                                        execTimeout: 1500000
+                                    )
+                                ]
+                            )
+                        ]
+                    )
+                }
+            }
+        }
     }
 }
